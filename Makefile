@@ -8,7 +8,7 @@ GHRFLAGS =
 default: build
 
 build:
-	goxc -d=pkg -pv=$(VERSION)
+	gox
 
 release:
 	ghr  -u rareinator  $(GHRFLAGS) v$(VERSION) pkg/$(VERSION)

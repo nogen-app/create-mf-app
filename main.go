@@ -154,9 +154,7 @@ func replacePlaceholder(path string, info os.FileInfo, err error) error {
 		for _, line := range lines {
 			newLine := line
 			for _, placeholder := range placeHolders {
-				fmt.Println(fmt.Sprintf("looking for: %s in %s", placeholder.Key, newLine))
 				newLine = strings.ReplaceAll(newLine, placeholder.Key, placeholder.Value)
-				fmt.Println(fmt.Sprintf("replacing with: %s", newLine))
 			}
 			newLines = append(newLines, newLine)
 		}
@@ -229,6 +227,55 @@ func cleanGitRepo() error {
 	}
 
 	return nil
+}
+
+func readStdoutLines(scanner *bufio.Scanner, outputChan chan string, finishedChan chan bool) {
+	for scanner.Scan() {
+		outputChan <- scanner.Text()
+	}
+	finishedChan <- true
+}
+
+func npmClientInstall(npmClient string, finishedChan chan bool, outputChan chan string) {
+	cmdNpmClientInstall := exec.Command(npmClient, "install")
+
+	// out, err := cmdNpmClientInstall.Output()
+	// if err != nil {
+	// 	fmt.Print(string(out))
+	// 	exitWithError(&err)
+	// }
+
+	cmdReader, err := cmdNpmClientInstall.StdoutPipe()
+	if err != nil {
+		exitWithError(&err)
+	}
+
+	scriptOutputChan := make(chan string)
+	scriptfinishecChan := make(chan bool)
+
+	scanner := bufio.NewScanner(cmdReader)
+	go readStdoutLines(scanner, scriptOutputChan, scriptfinishecChan)
+
+	if err := cmdNpmClientInstall.Start(); err != nil {
+		exitWithError(&err)
+	}
+	scriptIsRunning := true
+
+	for scriptIsRunning {
+		select {
+		case output := <-scriptOutputChan:
+			outputChan <- output
+		case status := <-scriptfinishecChan:
+			scriptIsRunning = !status
+		default:
+		}
+	}
+
+	if err := cmdNpmClientInstall.Wait(); err != nil {
+		exitWithError(&err)
+	}
+
+	finishedChan <- true
 }
 
 func main() {
@@ -316,18 +363,43 @@ func main() {
 				exitWithError(&err)
 			}
 
-			cmdNpmClientInstall := exec.Command(npmClient, "install")
-			out, err := cmdNpmClientInstall.Output()
-			if err != nil {
-				fmt.Print(string(out))
-				exitWithError(&err)
-			}
+			npmClientFinished := make(chan bool)
+			npmClientOutput := make(chan string)
+			go npmClientInstall(npmClient, npmClientFinished, npmClientOutput)
 
-			if err := cmdNpmClientInstall.Run(); err != nil {
-				exitWithError(&err)
-			}
+			idx := 0
+			var loadingSymbol string
+			npmClientIsNotRunning := false
+			for !npmClientIsNotRunning {
+				switch idx {
+				case 0:
+					loadingSymbol = "/"
+				case 1:
+					loadingSymbol = "-"
+				case 2:
+					loadingSymbol = "\\"
+				case 3:
+					loadingSymbol = "|"
+				}
+				fmt.Print(fmt.Sprintf("\r %s running", loadingSymbol))
+				if idx != 3 {
+					idx++
+				} else {
+					idx = 0
+				}
 
+				select {
+				case npmClientStatus := <-npmClientFinished:
+					npmClientIsNotRunning = npmClientStatus
+				case logLine := <-npmClientOutput:
+					fmt.Printf("\r\n %s \033[F", logLine)
+				default:
+				}
+			}
 			green := color.New(color.FgGreen).PrintfFunc()
+
+			green("\r[%s] ", checkmark)
+			fmt.Print("Finished        \r\n")
 
 			green("[%s] ", checkmark)
 			fmt.Printf("project: %s was succesfully created with %s serving on port %d", projectName, npmClient, port)
