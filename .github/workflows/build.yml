@@ -16,4 +16,7 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v2
     - name: Build
-      run: go build ./src/...
+      run: |
+        cd ./src
+        go mod vendor
+        go build ./...
