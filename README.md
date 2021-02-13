@@ -33,7 +33,7 @@ If you want you can always download the binaries yourself, directly from github 
 ## Source
 
 ### Requirements
-* go 1.15 +
+* go 1.14 +
 
 ````
 go get -u github.com/nogen-app/create-mf-app

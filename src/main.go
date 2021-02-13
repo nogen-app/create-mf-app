@@ -33,30 +33,6 @@ type placeHolder struct {
 
 var placeHolders []placeHolder
 
-type enumValue struct {
-	Enum     []string
-	Default  string
-	Selected string
-}
-
-func (e *enumValue) Set(value string) error {
-	for _, enum := range e.Enum {
-		if enum == value {
-			e.Selected = value
-			return nil
-		}
-	}
-
-	return fmt.Errorf("Allowed values are %s", strings.Join(e.Enum, ", "))
-}
-
-func (e enumValue) String() string {
-	if e.Selected == "" {
-		return e.Default
-	}
-	return e.Selected
-}
-
 func exitWithError(e *error) {
 	color.Set(color.FgRed)
 	fmt.Println(*e)
@@ -239,12 +215,6 @@ func readStdoutLines(scanner *bufio.Scanner, outputChan chan string, finishedCha
 func npmClientInstall(npmClient string, finishedChan chan bool, outputChan chan string) {
 	cmdNpmClientInstall := exec.Command(npmClient, "install")
 
-	// out, err := cmdNpmClientInstall.Output()
-	// if err != nil {
-	// 	fmt.Print(string(out))
-	// 	exitWithError(&err)
-	// }
-
 	cmdReader, err := cmdNpmClientInstall.StdoutPipe()
 	if err != nil {
 		exitWithError(&err)
@@ -300,7 +270,7 @@ func main() {
 			&cli.GenericFlag{
 				Name:    "npmclient",
 				Aliases: []string{"c"},
-				Value: &enumValue{
+				Value: &EnumValue{
 					Enum:    []string{"yarn", "npm", "npmm"},
 					Default: "yarn",
 				},
