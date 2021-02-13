@@ -18,7 +18,7 @@ type symbol string
 
 const (
 	gitTemplate = "https://github.com/nogen-app/create-mf-app-ts-react-template"
-	version     = "v0.0.1"
+	version     = "v0.1.0"
 )
 
 const (
@@ -399,7 +399,7 @@ func main() {
 			green := color.New(color.FgGreen).PrintfFunc()
 
 			green("\r[%s] ", checkmark)
-			fmt.Print("Finished        \r\n")
+			fmt.Print("Finished                \r\n")
 
 			green("[%s] ", checkmark)
 			fmt.Printf("project: %s was succesfully created with %s serving on port %d", projectName, npmClient, port)

@@ -8,7 +8,7 @@ GHRFLAGS =
 default: build
 
 build:
-	gox
+	goxc -d=pkg -pv=$(VERSION) -bc="linux darwin,amd64"
 
 release:
 	ghr  -u rareinator  $(GHRFLAGS) v$(VERSION) pkg/$(VERSION)

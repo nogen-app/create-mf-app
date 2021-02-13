@@ -24,8 +24,7 @@ class Create-Mf-App < Formula
     when /mswin|msys|mingw|cygwin|bccwin|wince|emc/
       :windows
     when /darwin|mac os/
-      url "https://github.com/nogen/create-mf-app/releases/download/v{{.Version}}/{{.Mac386.FileName}}"
-      sha256 "{{.Mac386.Hash}}"
+      :mac
     when /linux/
       url "https://github.com/nogen/create-mf-app/releases/download/v{{.Version}}/{{.Linux386.FileName}}"
       sha256 "{{.Linux386.Hash}}"
