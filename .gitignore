@@ -1,5 +1,7 @@
 .DS_Store
 test/*
 create-mf-app
+src/src
 .goxc.local.json
 pkg/*
+src/vendor/*
